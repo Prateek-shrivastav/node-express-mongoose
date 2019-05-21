@@ -3,7 +3,7 @@
     "tag_no": "tag_no",
     "build_script": "build_script",
     "applications": "nodejsapp",
-    "docker_image_id": "devinsigniac/node-express-mongoose-dev"
+    "docker_image_id": "jaibapna/node-express-mongoose"
 
   },
   "builders": [
