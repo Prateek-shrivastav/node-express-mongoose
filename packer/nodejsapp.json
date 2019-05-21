@@ -3,8 +3,8 @@
     "tag_no": "tag_no",
     "build_script": "build_script",
     "applications": "nodejsapp",
-    "ecr_region": "us-west-2",
-    "ecr_account": "260822065125"
+    "docker_image_id": "devinsigniac/node-express-mongoose-dev"
+
   },
   "builders": [
     {
@@ -14,7 +14,7 @@
       "commit": "true",
       "changes": [
        "WORKDIR /{{user `applications`}}",
-       "CMD [ \"npm\", \"run\" , \"prod\"]"
+       "CMD [ \"npm\", \"start\" ]"
       ]
     }
   ],
@@ -39,8 +39,11 @@
     [
       {
         "type": "docker-tag",
-        "repository": "sample/{{user `applications`}}",
+        "repository": "{{user `docker_image_id`}}",
         "tag": "{{user `tag_no`}}"
+      },
+      {
+        "type": "docker-push"
       }
     ]
 ]
