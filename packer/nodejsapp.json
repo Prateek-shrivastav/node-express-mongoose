@@ -1,0 +1,47 @@
+{
+  "variables": {
+    "tag_no": "tag_no",
+    "build_script": "build_script",
+    "applications": "nodejsapp",
+    "ecr_region": "us-west-2",
+    "ecr_account": "260822065125"
+  },
+  "builders": [
+    {
+      "type": "docker",
+      "image": "node:10.9.0",
+      "run_command": ["-d", "-i", "-t", "{{.Image}}", "/bin/sh"],
+      "commit": "true",
+      "changes": [
+       "WORKDIR /{{user `applications`}}",
+       "CMD [ \"npm\", \"run\" , \"prod\"]"
+      ]
+    }
+  ],
+  "provisioners":[
+     {
+    "type": "shell",
+    "inline": ["mkdir /{{user `applications`}}"]
+    },
+     {
+      "type": "file",
+      "source": "../",
+      "destination": "/{{user `applications`}}"
+    },
+    {
+    "type": "shell",
+    "script": "build_script/{{user `applications`}}.sh",
+    "environment_vars":[
+      "APPLICATION={{user `applications`}}"
+    ]
+    }],
+  "post-processors": [
+    [
+      {
+        "type": "docker-tag",
+        "repository": "sample/{{user `applications`}}",
+        "tag": "{{user `tag_no`}}"
+      }
+    ]
+]
+}
