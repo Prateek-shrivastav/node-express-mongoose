@@ -2,11 +2,11 @@
 
 ## build image:
 
-1.docker login 
+1.Docker login to repo  
 ```sh
 docker login 
 ```
-2. run following command 
+2.Run following command 
 
 ```sh
 cd packer 
