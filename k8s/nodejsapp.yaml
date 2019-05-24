@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-service
+  labels:
+    app: node-service
+spec:
+  type: NodePort
+  ports:
+  - port: 3000
+    targetPort: 3000
+    nodePort: 31010
+  selector:
+    name: node
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: node-deployment
+  labels:
+    app: node-deployment
+spec:
+  selector:
+    matchLabels:
+      name: node
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: node
+    spec:
+      containers:
+      - image: jbapna/node-express-mongoose:dev-1.0.1
+        name: nodejs
+        env:
+        - name: TWITTER_CLIENTID
+          value: "nil"
+        - name: TWITTER_SECRET
+          value: "nil"
+        - name: GITHUB_CLIENTID
+          value: "nil"
+        - name: GITHUB_SECRET
+          value: "nil"
+        - name: LINKEDIN_CLIENTID
+          value: "nil"
+        - name: LINKEDIN_SECRET
+          value: "nil"
+        - name: GOOGLE_CLIENTID
+          value: "nil"
+        - name: GOOGLE_SECRET
+          value: "nil"
+        - name: MONGODB_URL
+          value: "mongo://mongo-deployment:27017"                         
+        ports:
+        - containerPort: 3000
