@@ -26,5 +26,5 @@ Before run sript you must install all these
 
 ```sh
 
-Note:- It required 'aws_access_private' key to access bastion instance in the following path(name fixed):-  ~/.ssh/private_key
+Note:- It required 'private_key' key to access bastion instance in the following path(name fixed):-  ~/.ssh/private_key
 ```
