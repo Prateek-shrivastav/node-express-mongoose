@@ -98,8 +98,6 @@ export TF_VAR_aws_kube_worker_num=$aws_kube_worker_num
 
 # Git clone
 
-exit 1
-
 repository="https://github.com/jaibapna/kubespray.git"
 
 git clone $repository
