@@ -6,21 +6,6 @@ if which terraform
 then
 		echo "terraform installed"
 		terraform --version
-		if which ansible 
-		then
-			echo "Install ansible"
-			ansible_versions= ansible --version
-			if  [ansible_versions>=3.0]
-			then
-				echo "Required ansible installed"
-			else
-				echo "Please install ansible 3.0 version"
-				exit 1
-			fi
-		else
-			echo "Please install ansible 3.0 version"
-			exit 1
-		fi
 		if which pip3
 		then 
 			echo "Installed pip3"
@@ -45,33 +30,34 @@ fi
 usage()
 {
        echo "Use this parameter for run script  ."
-       echo "Usage: $0 -a AWS_ACCESS_KEY_ID -r AWS_DEFAULT_REGION -s AWS_SECRET_ACCESS_KEY -k AWS_SSH_KEY_NAM -p KEY_name"
+       echo "Usage: $0 -a AWS_ACCESS_KEY_ID -r AWS_DEFAULT_REGION -s AWS_SECRET_ACCESS_KEY -l AWS_SSH_KEY_NAM -p KEY_name"
    	   echo "    -a: AWS_ACCESS_KEY_ID"
   	   echo "    -r: AWS_DEFAULT_REGION"
        echo "    -s: AWS_SECRET_ACCESS_KEY"
-       echo "    -k: AWS_SSH_KEY_NAME"
+       echo "    -l: AWS_SSH_KEY_NAME"
        echo "    -p: KEY_name"
        exit 1
 }
 
 # Case statement for Run Script
 
-while getopts "c:dhkp:o:a:" opt; do
+
+while getopts "c:dhkp:r:a:s:l:p" opt; do
                case $opt in
                        a)
-                 		 AWS_ACCESS_KEY_ID=$OPTARG
+                 AWS_ACCESS_KEY_ID=$OPTARG
                          ;;
                        r)
-                         AWS_DEFAULT_REGION=$OPTARG
+                 AWS_DEFAULT_REGION=$OPTARG
                          ;;
                        s)
-                         AWS_SECRET_ACCESS_KEY=$OPTARG
-                         ;;
-                       k)
-                         AWS_SSH_KEY_NAME=$OPTARG
+                 AWS_SECRET_ACCESS_KEY=$OPTARG
                          ;;
                        p)
-                         KEY_name=$OPTARG
+                 KEY_name=$OPTARG
+                         ;;
+                       l)
+                 AWS_SSH_KEY_NAME=$OPTARG
                          ;;
                        h)
                          usage
@@ -79,32 +65,17 @@ while getopts "c:dhkp:o:a:" opt; do
                esac
 done
 
+echo $AWS_ACCESS_KEY_ID
+echo $AWS_DEFAULT_REGION
+echo $AWS_SECRET_ACCESS_KEY
+echo $AWS_SSH_KEY_NAME
+echo $KEY_name
 
-if [ "$AWS_ACCESS_KEY_ID" == "" ];then
-       echo "Please enter AWS_ACCESS_KEY_ID"
+if [ "$AWS_ACCESS_KEY_ID" == "" ] || [ "$AWS_DEFAULT_REGION" == "" ] || [ "$AWS_SECRET_ACCESS_KEY" == "" ] || [ "$AWS_SSH_KEY_NAME" == "" ] || [ "$KEY_name" == "" ];then
+
+       echo "prameter  missing"
+       usage
        exit 1
-
-       if [ "$AWS_DEFAULT_REGION" == "" ];then
-       	echo "Please enter AWS_DEFAULT_REGION"
-       	exit 1
-
-       	if [ "$AWS_SECRET_ACCESS_KEY" == "" ];then
-       		echo "Please enter AWS_SECRET_ACCESS_KEY"
-       		exit 1
-
-       		if [[ "$AWS_SSH_KEY_NAME" == "" ]]; then
-       			echo "Please enter AWS_SSH_KEY_NAME"
-       			exit 1
-
-       			if [[ "$KEY_name" == "" ]]; then
-       			echo "Please enter KEY_name"
-       			exit 1
-
-       			fi
-       		fi
-       	fi
-
-  	   fi
 fi
 
 aws_kube_master_num=1
@@ -126,6 +97,8 @@ export TF_VAR_aws_etcd_num=$aws_etcd_num
 export TF_VAR_aws_kube_worker_num=$aws_kube_worker_num
 
 # Git clone
+
+exit 1
 
 repository="https://github.com/jaibapna/kubespray.git"
 
