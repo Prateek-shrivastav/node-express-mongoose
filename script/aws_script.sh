@@ -1,68 +1,61 @@
 #!/bin/bash
 
-# Conditions for check Reqired software with version
+# Install packages
+sudo apt-get update -y
+sudo apt-get -y install wget unzip python3-pip
 
-if which terraform 
-then
-		echo "terraform installed"
-		terraform --version
-		if which pip3
-		then 
-			echo "Installed pip3"
-		else
-			echo "Please Install pip3"
-			exit 1
-		fi
-		if which python3
-		then
-			echo "Installed Python"
-		else
-			echo "Please install python3"
-			exit 1
-		fi
-else
-		echo "terraform Not installed"
-		exit 1
+# Install ansible
+sudo add-apt-repository ppa:ansible/ansible-2.8 -y
+sudo apt-get update -y
+sudo apt install ansible -y
+ansible --version
+
+
+# Install terraform
+terraform_version=0.11.13
+
+if [[ ! -f /usr/local/bin/terraform ]]; then
+  wget https://releases.hashicorp.com/terraform/${terraform_version}/terraform_${terraform_version}_linux_amd64.zip
+  sudo unzip ./terraform_${terraform_version}_linux_amd64.zip -d /usr/local/bin/
 fi
 
-# Methos for help to run bash script 
+terraform -v
 
+# Methos for help to run bash script
 usage()
 {
-       echo "Use this parameter for run script  ."
-       echo "Usage: $0 -a AWS_ACCESS_KEY_ID -r AWS_DEFAULT_REGION -s AWS_SECRET_ACCESS_KEY -l AWS_SSH_KEY_NAM -p KEY_name"
-   	   echo "    -a: AWS_ACCESS_KEY_ID"
-  	   echo "    -r: AWS_DEFAULT_REGION"
-       echo "    -s: AWS_SECRET_ACCESS_KEY"
-       echo "    -l: AWS_SSH_KEY_NAME"
-       echo "    -p: KEY_name"
-       exit 1
+   echo "Use this parameter for run script  ."
+   echo "Usage: $0 -a AWS_ACCESS_KEY_ID -r AWS_DEFAULT_REGION -s AWS_SECRET_ACCESS_KEY -l AWS_SSH_KEY_NAM -p KEY_name"
+           echo "    -a: AWS_ACCESS_KEY_ID"
+   echo "    -r: AWS_DEFAULT_REGION"
+   echo "    -s: AWS_SECRET_ACCESS_KEY"
+   echo "    -l: AWS_SSH_KEY_NAME"
+   echo "    -p: KEY_name"
+   exit 1
 }
 
 # Case statement for Run Script
-
-
 while getopts "c:dhkp:r:a:s:l:p" opt; do
-               case $opt in
-                       a)
-                 AWS_ACCESS_KEY_ID=$OPTARG
-                         ;;
-                       r)
-                 AWS_DEFAULT_REGION=$OPTARG
-                         ;;
-                       s)
-                 AWS_SECRET_ACCESS_KEY=$OPTARG
-                         ;;
-                       p)
-                 KEY_name=$OPTARG
-                         ;;
-                       l)
-                 AWS_SSH_KEY_NAME=$OPTARG
-                         ;;
-                       h)
-                         usage
-                         ;;
-               esac
+ case $opt in
+         a)
+           AWS_ACCESS_KEY_ID=$OPTARG
+           ;;
+         r)
+           AWS_DEFAULT_REGION=$OPTARG
+           ;;
+         s)
+           AWS_SECRET_ACCESS_KEY=$OPTARG
+           ;;
+         p)
+          KEY_name=$OPTARG
+           ;;
+         l)
+           AWS_SSH_KEY_NAME=$OPTARG
+           ;;
+         h)
+           usage
+           ;;
+   esac
 done
 
 echo $AWS_ACCESS_KEY_ID
@@ -72,63 +65,58 @@ echo $AWS_SSH_KEY_NAME
 echo $KEY_name
 
 if [ "$AWS_ACCESS_KEY_ID" == "" ] || [ "$AWS_DEFAULT_REGION" == "" ] || [ "$AWS_SECRET_ACCESS_KEY" == "" ] || [ "$AWS_SSH_KEY_NAME" == "" ] || [ "$KEY_name" == "" ];then
-
-       echo "prameter  missing"
-       usage
-       exit 1
+   echo "prameter  missing"
+   usage
+   exit 1
 fi
 
 aws_kube_master_num=1
 aws_etcd_num=1
 aws_kube_worker_num=1
 key_name=$KEY_name
+echo $key_name
 
 # Set environment variable
 
-export TF_VAR_AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-export TF_VAR_AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
+
+cat <<EOF > /etc/profile.d/exportfile.sh
+export TF_VAR_AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+export TF_VAR_AWS_DEFAULT_REGION="$AWS_DEFAULT_REGION"
 export TF_VAR_AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 export TF_VAR_AWS_SSH_KEY_NAME=$AWS_SSH_KEY_NAME
-
-# Set instance Number
-
 export TF_VAR_aws_kube_master_num=$aws_kube_master_num
 export TF_VAR_aws_etcd_num=$aws_etcd_num
 export TF_VAR_aws_kube_worker_num=$aws_kube_worker_num
+EOF
+
+source /etc/profile.d/exportfile.sh
+
 
 # Git clone
-
 repository="https://github.com/jaibapna/kubespray.git"
 
-git clone $repository
-
+#git clone $repository
 cd kubespray
-
 cd contrib/terraform/aws
 
 echo "**************************************************"
 echo "Get Terraform Modules"
 echo "**************************************************"
 
-terraform get -no-color -update
-echo env.
-
-## Fetch remote state if existent
-terraform refresh -no-color
-
+terraform init
 
 ## Plan execution
-terraform plan -no-color -out ${CUSTOMER}-${STACK_ENVIRONMENT}.plan
+terraform plan -no-color
 
 ## Provision
 terraform apply -no-color -auto-approve
 
-# terraform deploy 
+# terraform deploy
 
 cd ../../..
 
 # install dependency
 pip3 install -r requirements.txt
 
-ansible-playbook -i ./inventory/hosts ./cluster.yml -e ansible_user=centos -b --become-user=root --flush-cache  --private-key=~/.ssh/$key_name
-
+ansible-playbook -i ./inventory/hosts ./cluster.yml -e ansible_user=CentOs -b --become-user=root --flush-cache  --private-key=~/.ssh/$key_name \
+ --extra-vars "kubectl_localhost=true kubeconfig_localhost=true dashboard_enabled=true"
