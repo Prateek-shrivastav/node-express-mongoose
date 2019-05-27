@@ -1,4 +1,5 @@
 #!/bin/bash
+set -ex
 
 # Install packages
 sudo apt-get update -y
@@ -25,17 +26,16 @@ terraform -v
 usage()
 {
    echo "Use this parameter for run script  ."
-   echo "Usage: $0 -a AWS_ACCESS_KEY_ID -r AWS_DEFAULT_REGION -s AWS_SECRET_ACCESS_KEY -l AWS_SSH_KEY_NAM -p KEY_name"
+   echo "Usage: $0 -a AWS_ACCESS_KEY_ID -r AWS_DEFAULT_REGION -s AWS_SECRET_ACCESS_KEY -l AWS_SSH_KEY_NAME"
            echo "    -a: AWS_ACCESS_KEY_ID"
    echo "    -r: AWS_DEFAULT_REGION"
    echo "    -s: AWS_SECRET_ACCESS_KEY"
    echo "    -l: AWS_SSH_KEY_NAME"
-   echo "    -p: KEY_name"
    exit 1
 }
 
 # Case statement for Run Script
-while getopts "c:dhkp:r:a:s:l:p" opt; do
+while getopts "a:r:s:l:h:" opt; do
  case $opt in
          a)
            AWS_ACCESS_KEY_ID=$OPTARG
@@ -45,9 +45,6 @@ while getopts "c:dhkp:r:a:s:l:p" opt; do
            ;;
          s)
            AWS_SECRET_ACCESS_KEY=$OPTARG
-           ;;
-         p)
-          KEY_name=$OPTARG
            ;;
          l)
            AWS_SSH_KEY_NAME=$OPTARG
@@ -64,7 +61,7 @@ echo $AWS_SECRET_ACCESS_KEY
 echo $AWS_SSH_KEY_NAME
 echo $KEY_name
 
-if [ "$AWS_ACCESS_KEY_ID" == "" ] || [ "$AWS_DEFAULT_REGION" == "" ] || [ "$AWS_SECRET_ACCESS_KEY" == "" ] || [ "$AWS_SSH_KEY_NAME" == "" ] || [ "$KEY_name" == "" ];then
+if [ "$AWS_ACCESS_KEY_ID" == "" ] || [ "$AWS_DEFAULT_REGION" == "" ] || [ "$AWS_SECRET_ACCESS_KEY" == "" ] || [ "$AWS_SSH_KEY_NAME" == "" ];then
    echo "prameter  missing"
    usage
    exit 1
@@ -73,8 +70,11 @@ fi
 aws_kube_master_num=1
 aws_etcd_num=1
 aws_kube_worker_num=1
+ansible_user=centos
 key_name=$KEY_name
+
 echo $key_name
+
 
 # Set environment variable
 
@@ -112,11 +112,16 @@ terraform plan -no-color
 terraform apply -no-color -auto-approve
 
 # terraform deploy
-
+#terraform destroy  -auto-approve  ./terraform.tfstate
 cd ../../..
+
+## add key to ssh 
+eval $(ssh-agent)
+ssh-add ~/.ssh/$key_name
 
 # install dependency
 pip3 install -r requirements.txt
 
-ansible-playbook -i ./inventory/hosts ./cluster.yml -e ansible_user=CentOs -b --become-user=root --flush-cache  --private-key=~/.ssh/$key_name \
- --extra-vars "kubectl_localhost=true kubeconfig_localhost=true dashboard_enabled=true"
+ansible-playbook -i ./inventory/hosts ./cluster.yml -e ansible_user=$ansible_user -b --become-user=root --flush-cache  --private-key=~/.ssh/$key_name \
+ --extra-vars "kubectl_localhost=true kubeconfig_localhost=true dashboard_enabled=true" -vv
+
