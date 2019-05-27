@@ -51,6 +51,6 @@ spec:
         - name: GOOGLE_SECRET
           value: "nil"
         - name: MONGODB_URL
-          value: "mongodb://mongo-service:27017"                         
+          value: "mongodb://mongo-service:27017/dev"                         
         ports:
         - containerPort: 3000
