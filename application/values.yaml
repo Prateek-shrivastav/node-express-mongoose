@@ -1,0 +1,59 @@
+# Default values for application.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: jaibapna/node-express-mongoose
+  tag: dev-1.0.1
+  pullPolicy: IfNotPresent
+
+twitter_clientID: "nil"
+twitter_secret: "nil"
+github_clientID: "nil"
+github_secret: "nil"
+linkedin_clientID: "nil"
+linkedin_secret: "nil"
+google_clientID: "nil"
+google_secret: "nil"
+mongo_url: "mongodb://mongo-service:27017/dev"
+
+service:
+  type: NodePort
+  port: 31010
+
+containerPort: 3000
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
